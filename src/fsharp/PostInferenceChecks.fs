@@ -615,7 +615,9 @@ and CheckExpr (cenv:cenv) (env:env) expr (context:ByrefContext) =
                 // type equality, and it would be much better to remove any F# dependency on that implementation of IL type
                 // equality. It would be better to make this check in tc.fs when we have the Abstract IL metadata for the method to hand.
                 let mdef = resolveILMethodRef tcref.ILTyconRawMetadata mref
-                if mdef.IsAbstract then
+//                printfn "IsVirtual: %A" mdef.IsVirtual
+//                printfn "IsAbstract: %A" mdef.IsAbstract
+                if mdef.IsVirtual && mdef.IsAbstract then
                     errorR(Error(FSComp.SR.tcCannotCallAbstractBaseMember(mdef.Name),m))
             with _ -> () // defensive coding
         | _ -> ()

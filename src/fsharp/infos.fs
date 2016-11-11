@@ -747,7 +747,7 @@ type ILMethInfo =
         let md = x.RawMetadata 
         not md.IsConstructor &&
         not md.IsClassInitializer &&
-        (md.Access = ILMemberAccess.Family || md.Access = ILMemberAccess.FamilyOrAssembly)
+        (md.Access = ILMemberAccess.Family || md.Access = ILMemberAccess.FamilyOrAssembly) // TODO: FamilyOrAssembly / FamilyAndAssembly
 
     /// Indicates if the IL method is marked virtual.
     member x.IsVirtual = x.RawMetadata.IsVirtual
