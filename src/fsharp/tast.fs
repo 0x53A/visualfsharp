@@ -4018,7 +4018,7 @@ and
     /// Why multiple vspecs? A Expr.Lambda taking multiple arguments really accepts a tuple. 
     /// But it is in a convenient form to be compile accepting multiple 
     /// arguments, e.g. if compiled as a toplevel static method. 
-    | Lambda of Unique * Val option * Val option * Val list * Expr * range * TType
+    | Lambda of Unique * thisVal: Val option * baseVal: Val option * Val list * body: Expr * range * returnTyp:TType
 
     /// Type lambdas.  These are used for the r.h.s. of polymorphic 'let' bindings and 
     /// for expressions that implement first-class polymorphic values. 
