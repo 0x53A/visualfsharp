@@ -5649,11 +5649,11 @@ let rec mkExprAddrOfExprAux g mustTakeAddress useReadonlyForGenericArrayAddress 
             | _ -> mkMutableCompGenLocal m "copyOfStruct" ty
         Some (tmp, e), (mkValAddr m (mkLocalValRef tmp))        
 
-let mkExprAddrOfExpr g mustTakeAddress useReadonlyForGenericArrayAddress mut e addrExprVal m =
+let mkExprAddrOfExpr g mustTakeAddress useReadonlyForGenericArrayAddress mut e addrExprVal m : (Expr->Expr) * Expr =
     let optBind, addre = mkExprAddrOfExprAux g mustTakeAddress useReadonlyForGenericArrayAddress mut e addrExprVal m
     match optBind with 
-    | None -> id, addre
-    | Some (tmp, rval) -> id, addre
+    | None -> (fun x -> x), addre
+    | Some (tmp, rval) -> (fun x -> x), addre
 
 let mkTupleFieldGet g (tupInfo, e, tinst, i, m) = 
     let wrap, e' = mkExprAddrOfExpr g (evalTupInfoIsStruct tupInfo) false NeverMutates e None m
