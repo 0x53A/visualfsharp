@@ -2570,7 +2570,7 @@ and TryInlineApplication cenv env finfo (tyargs: TType list, args: Expr list, m)
 
 and IterExpression vref cenv expr =
     match expr with
-    | Expr.App(Expr.Val(valRef,_,_rangeListIter), _, [TType_app _ as elementType], appliedParams, _rangeOuter)
+    | Expr.App(Expr.Val(valRef,_,_rangeIter), _, [TType_app _ as elementType], appliedParams, _rangeOuter)
        when valRefEq cenv.g valRef vref ->
         match appliedParams with
         | [Expr.Lambda(_,None,None,[fVal],fBody,_m1,_fRetType);
@@ -2624,7 +2624,7 @@ and OptimizeApplication cenv env (f0, f0ty, tyargs, args, m) =
         OptimizeExpr cenv env newExpr
     | _ -> 
         match newExpr with
-        // Rewrite 'List.iter (fun x -> expr) s' into 'for x in s do exp'
+        // Rewrite 'List.iter (fun x -> expr) s' into 'for x in s do expr'
         | ListIterExpression cenv (enumerableExpr, elemTy, elemVar, bodyExpr) ->
             let g = cenv.g
             let enumExprTy = mkListTy g elemTy
@@ -2656,6 +2656,17 @@ and OptimizeApplication cenv env (f0, f0ty, tyargs, args, m) =
                     (mkCompGenLet zeroRange nextVar tailOrNullExpr 
                         // while nonNull next dp
                        (mkWhile g (NoSequencePointAtWhileLoop, WhileLoopForCompiledForEachExprMarker, guardExpr, bodyExpr, zeroRange)))
+
+            OptimizeExpr cenv env expr
+
+
+        // Rewrite 'Seq.iter (fun x -> expr) s' into 'for x in s do expr'
+        | SeqIterExpression cenv _ when false ->
+            failwith "not implemented"
+            //let g = cenv.g
+            //let enumExprTy = mkListTy g elemTy
+            //let zeroRange = range.Zero
+
             //let enumExpr = enumerableExpr
             //let mForLoopStart = zeroRange
             //let mEnumExpr = zeroRange
@@ -2678,7 +2689,11 @@ and OptimizeApplication cenv env (f0, f0ty, tyargs, args, m) =
             //                    mForLoopStart), 
             //                cleanupE, mForLoopStart, cenv.g.unit_ty, NoSequencePointAtTry, NoSequencePointAtFinally))))
 
-            OptimizeExpr cenv env expr
+            //OptimizeExpr cenv env expr
+
+        // Rewrite 'Array.iter (fun x -> expr) s' into 'for x in s do expr'
+        | ArrayIterExpression cenv _ when false ->
+            failwith "not implemented"
 
         // Rewrite Seq.map f (Seq.map g) xs into Seq.map (fun x -> f(g x)) xs
         | Expr.App(Expr.Val(outerValRef,_,_) as outerSeqMap,ttype1,[_;fOutType],
