@@ -2711,6 +2711,45 @@ and OptimizeApplication cenv env (f0, f0ty, tyargs, args, m) =
                           rest],m2)
 
             OptimizeExpr cenv env reduced
+
+        // Rewrite Array.map f (Array.map g) xs into Array.map (fun x -> f(g x)) xs
+        // This optimization is only allowed if it is unobserable (not ExprHasEffect)
+        | Expr.App(Expr.Val(outerValRef,_,_) as outerMap,ttype1,[_;fOutType],
+                    [(Expr.Lambda(_,None,None,_,_,m1,fRetType) as f)
+                     Expr.App(Expr.Val(innerValRef,_,_),_,[gInType;_],
+                                [Expr.Lambda(_,None,None,gVals,g,_,gRetType)
+                                 rest],_)],m2) when
+            valRefEq cenv.g innerValRef cenv.g.array_map_vref &&
+            valRefEq cenv.g outerValRef cenv.g.array_map_vref &&
+            not (ExprHasEffect cenv.g f) && not (ExprHasEffect cenv.g g)-> 
+            let newApp = Expr.App(f,TType_fun(gRetType, fRetType),[],[g],m2)
+            
+            let reduced =
+               Expr.App(outerMap,ttype1,[gInType;fOutType],
+                         [Expr.Lambda (newUnique(), None, None, gVals, newApp, m1, gRetType)
+                          rest],m2)
+
+            OptimizeExpr cenv env reduced
+
+        // Rewrite List.map f (List.map g) xs into List.map (fun x -> f(g x)) xs
+        // This optimization is only allowed if it is unobserable (not ExprHasEffect)
+        | Expr.App(Expr.Val(outerValRef,_,_) as outerMap,ttype1,[_;fOutType],
+                    [(Expr.Lambda(_,None,None,_,_,m1,fRetType) as f)
+                     Expr.App(Expr.Val(innerValRef,_,_),_,[gInType;_],
+                                [Expr.Lambda(_,None,None,gVals,g,_,gRetType)
+                                 rest],_)],m2) when
+            valRefEq cenv.g innerValRef cenv.g.list_map_vref &&
+            valRefEq cenv.g outerValRef cenv.g.list_map_vref &&
+            not (ExprHasEffect cenv.g f) && not (ExprHasEffect cenv.g g)-> 
+            let newApp = Expr.App(f,TType_fun(gRetType, fRetType),[],[g],m2)
+            
+            let reduced =
+               Expr.App(outerMap,ttype1,[gInType;fOutType],
+                         [Expr.Lambda (newUnique(), None, None, gVals, newApp, m1, gRetType)
+                          rest],m2)
+
+            OptimizeExpr cenv env reduced
+
         | _ ->
 
         // regular

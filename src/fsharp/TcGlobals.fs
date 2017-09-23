@@ -590,6 +590,8 @@ type public TcGlobals(compilingFslib: bool, ilg:ILGlobals, fslibCcu: CcuThunk, d
   let v_seq_to_array_info          = makeIntrinsicValRef(fslib_MFSeqModule_nleref,                             "toArray"                              , None                 , Some "ToArray", [varb],     ([[mkSeqTy varbTy]], mkArrayType 1 varbTy))  
   let v_seq_to_list_info           = makeIntrinsicValRef(fslib_MFSeqModule_nleref,                             "toList"                               , None                 , Some "ToList" , [varb],     ([[mkSeqTy varbTy]], mkListTy varbTy))
   let v_seq_map_info               = makeIntrinsicValRef(fslib_MFSeqModule_nleref,                             "map"                                  , None                 , Some "Map"    , [vara;varb], ([[varaTy --> varbTy]; [mkSeqTy varaTy]], mkSeqTy varbTy))
+  let v_list_map_info              = makeIntrinsicValRef(fslib_MFListModule_nleref,                            "map"                                  , None                 , Some "Map"    , [vara;varb], ([[varaTy --> varbTy]; [mkListTy varaTy]], mkListTy varbTy))
+  let v_array_map_info             = makeIntrinsicValRef(fslib_MFArrayModule_nleref,                           "map"                                  , None                 , Some "Map"    , [vara;varb], ([[varaTy --> varbTy]; [mkArrayType 1 varaTy]], mkArrayType 1 varbTy))
   let v_seq_singleton_info         = makeIntrinsicValRef(fslib_MFSeqModule_nleref,                             "singleton"                            , None                 , Some "Singleton"              , [vara],     ([[varaTy]], mkSeqTy varaTy))
   let v_seq_empty_info             = makeIntrinsicValRef(fslib_MFSeqModule_nleref,                             "empty"                                , None                 , Some "Empty"                  , [vara],     ([], mkSeqTy varaTy))
   let v_seq_iter_info              = makeIntrinsicValRef(fslib_MFSeqModule_nleref,                             "iter"                                 , None                 , Some "Iterate"                , [varb],     ([[mkSeqTy varbTy]], v_unit_ty))
@@ -1151,6 +1153,8 @@ type public TcGlobals(compilingFslib: bool, ilg:ILGlobals, fslibCcu: CcuThunk, d
   member val seq_finally_vref           = ValRefForIntrinsic  v_seq_finally_info
   member val seq_of_functions_vref      = ValRefForIntrinsic  v_seq_of_functions_info
   member val seq_map_vref               = ValRefForIntrinsic  v_seq_map_info
+  member val list_map_vref              = ValRefForIntrinsic  v_list_map_info
+  member val array_map_vref             = ValRefForIntrinsic  v_array_map_info
   member val seq_empty_vref             = ValRefForIntrinsic  v_seq_empty_info
   //--
   member val seq_iter_vref              = ValRefForIntrinsic  v_seq_iter_info
