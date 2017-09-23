@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
 // # FSComp.SR.opts
 
@@ -728,7 +728,7 @@ let codePageFlag (tcConfigB : TcConfigBuilder) =
 
 #if PREFERRED_UI_LANG
 let preferredUiLang (tcConfigB: TcConfigBuilder) = 
-        CompilerOption("preferreduilang", tagString, OptionString (fun s -> tcConfigB.preferredUiLang <- Some(s)), None, Some(FSComp.SR.optsStrongKeyContainer()))
+        CompilerOption("preferreduilang", tagString, OptionString (fun s -> tcConfigB.preferredUiLang <- Some(s)), None, Some(FSComp.SR.optsPreferredUiLang()))
 #endif
 
 let utf8OutputFlag (tcConfigB: TcConfigBuilder) = 

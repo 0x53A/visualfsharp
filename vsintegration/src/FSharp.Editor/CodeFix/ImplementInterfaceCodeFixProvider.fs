@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
-namespace rec Microsoft.VisualStudio.FSharp.Editor
+namespace Microsoft.VisualStudio.FSharp.Editor
 
 open System
 open System.Composition
@@ -29,7 +29,7 @@ type internal FSharpImplementInterfaceCodeFixProvider
     [<ImportingConstructor>]
     (
         checkerProvider: FSharpCheckerProvider, 
-        projectInfoManager: ProjectInfoManager
+        projectInfoManager: FSharpProjectOptionsManager
     ) =
     inherit CodeFixProvider()
     let fixableDiagnosticIds = ["FS0366"]
@@ -130,8 +130,8 @@ type internal FSharpImplementInterfaceCodeFixProvider
                             title)                
                     context.RegisterCodeFix(codeAction, diagnostics)
 
-                registerCodeFix SR.ImplementInterface.Value true
-                registerCodeFix SR.ImplementInterfaceWithoutTypeAnnotation.Value false
+                registerCodeFix (SR.ImplementInterface()) true
+                registerCodeFix (SR.ImplementInterfaceWithoutTypeAnnotation()) false
             else 
                 ()
             

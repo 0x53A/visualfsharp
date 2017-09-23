@@ -1,6 +1,6 @@
-// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
-namespace rec Microsoft.VisualStudio.FSharp.Editor
+namespace Microsoft.VisualStudio.FSharp.Editor
 
 open System
 open System.Composition
@@ -20,7 +20,7 @@ type internal FSharpRenameUnusedValueCodeFixProvider
     [<ImportingConstructor>]
     (
         checkerProvider: FSharpCheckerProvider, 
-        projectInfoManager: ProjectInfoManager
+        projectInfoManager: FSharpProjectOptionsManager
     ) =
     
     inherit CodeFixProvider()
@@ -65,12 +65,12 @@ type internal FSharpRenameUnusedValueCodeFixProvider
 
                 match symbolUse.Symbol with
                 | :? FSharpMemberOrFunctionOrValue as func ->
-                    createCodeFix(context, symbolName, SR.PrefixValueNameWithUnderscore.Value, TextChange(TextSpan(context.Span.Start, 0), "_"))
+                    createCodeFix(context, symbolName, SR.PrefixValueNameWithUnderscore(), TextChange(TextSpan(context.Span.Start, 0), "_"))
 
                     if func.IsMemberThisValue then
-                        createCodeFix(context, symbolName, SR.RenameValueToDoubleUnderscore.Value, TextChange(context.Span, "__"))
+                        createCodeFix(context, symbolName, SR.RenameValueToDoubleUnderscore(), TextChange(context.Span, "__"))
                     elif not func.IsMember then
-                        createCodeFix(context, symbolName, SR.RenameValueToUnderscore.Value, TextChange(context.Span, "_"))
+                        createCodeFix(context, symbolName, SR.RenameValueToUnderscore(), TextChange(context.Span, "_"))
                 | _ -> ()
         } 
         |> Async.Ignore

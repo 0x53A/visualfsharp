@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
 module Microsoft.FSharp.Compiler.AbstractIL.IL 
 
@@ -675,27 +675,33 @@ and [<RequireQualifiedAccess; StructuralEquality; StructuralComparison>]
         
     member x.QualifiedNameWithNoShortPrimaryAssembly = 
         x.AddQualifiedNameExtensionWithNoShortPrimaryAssembly(x.BasicQualifiedName)
+
     member x.TypeSpec =
       match x with 
       | ILType.Boxed tr | ILType.Value tr -> tr
       | _ -> invalidOp "not a nominal type"
+
     member x.Boxity =
       match x with 
       | ILType.Boxed _ -> AsObject
       | ILType.Value _ -> AsValue
       | _ -> invalidOp "not a nominal type"
+
     member x.TypeRef = 
       match x with 
       | ILType.Boxed tspec | ILType.Value tspec -> tspec.TypeRef
       | _ -> invalidOp "not a nominal type"
+
     member x.IsNominal = 
       match x with 
       | ILType.Boxed _ | ILType.Value _ -> true
       | _ -> false
+
     member x.GenericArgs =
       match x with 
       | ILType.Boxed tspec | ILType.Value tspec -> tspec.GenericArgs
       | _ -> []
+
     member x.IsTyvar =
       match x with 
       | ILType.TypeVar _ -> true | _ -> false
@@ -838,13 +844,14 @@ type ILAttribElem =
 type ILAttributeNamedArg =  (string * ILType * bool * ILAttribElem)
 type ILAttribute = 
     { Method: ILMethodSpec;
-      Data: byte[] }
+      Data: byte[] 
+      Elements: ILAttribElem list}
 
 [<NoEquality; NoComparison; Sealed>]
 type ILAttributes(f: unit -> ILAttribute[]) = 
-   let mutable array = InlineDelayInit<_>(f)
-   member x.AsArray = array.Value
-   member x.AsList = x.AsArray |> Array.toList
+    let mutable array = InlineDelayInit<_>(f)
+    member x.AsArray = array.Value
+    member x.AsList = x.AsArray |> Array.toList
 
 type ILCodeLabel = int
 
@@ -1075,6 +1082,7 @@ type ILMethodBody =
     { IsZeroInit: bool;
       MaxStack: int32;
       NoInlining: bool;
+      AggressiveInlining: bool;
       Locals: ILLocals;
       Code:  ILCode;
       SourceMarker: ILSourceMarker option }
@@ -1374,6 +1382,7 @@ type ILMethodDef =
       IsPreserveSig: bool;
       IsMustRun: bool;
       IsNoInline: bool;
+      IsAggressiveInline : bool
       GenericParams: ILGenericParameterDefs;
       CustomAttrs: ILAttributes; }
     member x.ParameterTypes = typesOfILParams x.Parameters
@@ -2279,6 +2288,7 @@ let mkILMethodBody (zeroinit,locals,maxstack,code,tag) : ILMethodBody =
   { IsZeroInit=zeroinit
     MaxStack=maxstack
     NoInlining=false
+    AggressiveInlining=false
     Locals= locals 
     Code= code
     SourceMarker=tag }
@@ -2314,6 +2324,7 @@ let mkILCtor (access,args,impl) =
       IsUnmanagedExport=false;
       IsSynchronized=false;
       IsNoInline=false;
+      IsAggressiveInline=false
       IsMustRun=false;
       IsPreserveSig=false;
       CustomAttrs = emptyILCustomAttrs; }
@@ -2367,6 +2378,7 @@ let mkILStaticMethod (genparams,nm,access,args,ret,impl) =
       IsUnmanagedExport=false;
       IsSynchronized=false;
       IsNoInline=false;
+      IsAggressiveInline=false;
       IsMustRun=false;
       IsPreserveSig=false; }
 
@@ -2396,6 +2408,7 @@ let mkILClassCtor impl =
       IsUnmanagedExport=false; 
       IsSynchronized=false;
       IsNoInline=false;
+      IsAggressiveInline=false
       IsMustRun=false;
       IsPreserveSig=false;  } 
 
@@ -2436,6 +2449,7 @@ let mkILGenericVirtualMethod (nm,access,genparams,actual_args,actual_ret,impl) =
     IsUnmanagedExport=false; 
     IsSynchronized=false;
     IsNoInline=false;
+    IsAggressiveInline=false
     IsMustRun=false;
     IsPreserveSig=false; }
     
@@ -2465,6 +2479,7 @@ let mkILGenericNonVirtualMethod (nm,access,genparams, actual_args,actual_ret, im
     IsUnmanagedExport=false; 
     IsSynchronized=false;
     IsNoInline=false;
+    IsAggressiveInline=false
     IsMustRun=false;
     IsPreserveSig=false; }
     
@@ -3080,12 +3095,12 @@ let rec decodeCustomAttrElemType (ilg: ILGlobals) bytes sigptr x =
 let rec encodeCustomAttrPrimValue ilg c = 
     match c with 
     | ILAttribElem.Bool b -> [| (if b then 0x01uy else 0x00uy) |]
-    | ILAttribElem.String None 
-    | ILAttribElem.Type None 
+    | ILAttribElem.String None
+    | ILAttribElem.Type None
     | ILAttribElem.TypeRef None
     | ILAttribElem.Null -> [| 0xFFuy |]
     | ILAttribElem.String (Some s) -> encodeCustomAttrString s
-    | ILAttribElem.Char x -> u16AsBytes (uint16 x)
+    | ILAttribElem.Char x ->  u16AsBytes (uint16 x)
     | ILAttribElem.SByte x -> i8AsBytes x
     | ILAttribElem.Int16 x -> i16AsBytes x
     | ILAttribElem.Int32 x -> i32AsBytes x
@@ -3127,9 +3142,9 @@ let mkILCustomAttribMethRef (ilg: ILGlobals) (mspec:ILMethodSpec, fixedArgs: lis
          yield! u16AsBytes (uint16 namedArgs.Length) 
          for namedArg in namedArgs do 
              yield! encodeCustomAttrNamedArg ilg namedArg |]
-
     { Method = mspec;
-      Data = args }
+      Data = args;
+      Elements = fixedArgs @ (namedArgs |> List.map(fun (_,_,_,e) -> e)) }
 
 let mkILCustomAttribute ilg (tref,argtys,argvs,propvs) = 
     mkILCustomAttribMethRef ilg (mkILNonGenericCtorMethSpec (tref,argtys),argvs,propvs)

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.-->
+<!-- Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.-->
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <FSharpSourcesRoot>$(MSBuildProjectDirectory)\..\..\..\src</FSharpSourcesRoot>
@@ -34,7 +34,7 @@
   <Import Project="$(VSSDKTargets)" />
   <PropertyGroup>
     <BuildingProject>true</BuildingProject>
-    <BuildDependsOn>VSCTCompile;CopyCtoFile;$(BuildDependsOn)</BuildDependsOn>
+    <BuildDependsOn>VSCTCompile;CopyCtoFile;CopyLocalizationResources;$(BuildDependsOn)</BuildDependsOn>
   </PropertyGroup>
   <Target Name="CopyCtoFile">
     <Copy SourceFiles="@(VSCTCompile->'$(IntermediateOutputPath)%(FileName).cto')" DestinationFiles="@(VSCTCompile->'ctofiles\%(FileName).cto')" />
@@ -42,7 +42,7 @@
   <PropertyGroup>
     <Win32Resource>$(IntermediateOutputPath)\ProjectResources.rc.res</Win32Resource>
   </PropertyGroup>
-  <Target Name="BeforeBuild">
+  <Target Name="BeforeBuild" Condition="!Exists('$(IntermediateOutputPath)$(RCResourceFile).res')">
     <Exec Command="&quot;$(ProgramFiles)\Windows Kits\8.1\bin\x86\rc.exe&quot; /fo $(IntermediateOutputPath)$(RCResourceFile).res $(RCResourceFile)" Condition="Exists('$(ProgramFiles)\Windows Kits\8.1\bin\x86\rc.exe')" />
     <Exec Command="&quot;$(ProgramFiles)\Windows Kits\10\bin\x86\rc.exe&quot; /fo $(IntermediateOutputPath)$(RCResourceFile).res $(RCResourceFile)" Condition="Exists('$(ProgramFiles)\Windows Kits\10\bin\x86\rc.exe')" />
     <Exec Command="&quot;$(ProgramFiles)\Windows Kits\10\bin\10.0.15063.0\x86\rc.exe&quot; /fo $(IntermediateOutputPath)$(RCResourceFile).res $(RCResourceFile)" Condition="Exists('$(ProgramFiles)\Windows Kits\10\bin\10.0.15063.0\x86\rc.exe')" />
@@ -57,7 +57,7 @@
       </FilesToSign>
     </ItemGroup>
   </Target>
-  <Target Name="CopyLocalizationResources" BeforeTargets="Localize">
+  <Target Name="CopyLocalizationResources">
     <ItemGroup>
       <LocalizationResources Include="MenusAndCommands.vsct" />
     </ItemGroup>
@@ -79,7 +79,8 @@
       <Parser>210</Parser>
     </FilesToLocalize>
     <VSCTCompile Include="MenusAndCommands.vsct" />
-    <EmbeddedResource Include="VSPackage.resx">
+    <EmbeddedResource Include="VSPackage.resx" GenerateSource="true">
+      <GeneratedModuleName>Microsoft.VisualStudio.FSharp.ProjectSystem.FSharpSR</GeneratedModuleName>
       <MergeWithCTO>true</MergeWithCTO>
     </EmbeddedResource>
     <Compile Include="AssemblyInfo.fs" />

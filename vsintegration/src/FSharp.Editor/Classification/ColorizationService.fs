@@ -1,9 +1,11 @@
-﻿// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
 namespace Microsoft.VisualStudio.FSharp.Editor
 
+open System
 open System.Composition
 open System.Collections.Generic
+open System.Diagnostics
 open System.Threading
 
 open Microsoft.CodeAnalysis
@@ -19,7 +21,7 @@ type internal FSharpColorizationService
     [<ImportingConstructor>]
     (
         checkerProvider: FSharpCheckerProvider,
-        projectInfoManager: ProjectInfoManager
+        projectInfoManager: FSharpProjectOptionsManager
     ) =
     static let userOpName = "SemanticColorization"
 
@@ -36,6 +38,7 @@ type internal FSharpColorizationService
 
         member this.AddSemanticClassificationsAsync(document: Document, textSpan: TextSpan, result: List<ClassifiedSpan>, cancellationToken: CancellationToken) =
             asyncMaybe {
+                do Trace.TraceInformation("{0:n3} (start) SemanticColorization", DateTime.Now.TimeOfDay.TotalSeconds)
                 do! Async.Sleep DefaultTuning.SemanticColorizationInitialDelay |> liftAsync // be less intrusive, give other work priority most of the time
                 let! options = projectInfoManager.TryGetOptionsForDocumentOrProject(document)
                 let! sourceText = document.GetTextAsync(cancellationToken)
